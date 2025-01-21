@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "vite"
+    "postinstall": "tsc -b && vite build --mode production"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
