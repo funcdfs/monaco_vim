@@ -354,7 +354,7 @@
 /* 优化活动行高亮 */
 .monaco-editor .current-line {
   border: none !important;
-  background-color: var(--elegant-selection) !important;
+/*  background-color: var(--elegant-selection) !important;*/
 }
 
 /* 优化搜索高亮 */

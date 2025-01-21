@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/monaco-vim.d.ts","./src/vite-env.d.ts","./src/components/editor.tsx"],"version":"5.6.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/monaco-vim.d.ts","./src/vite-env.d.ts"],"version":"5.6.3"}

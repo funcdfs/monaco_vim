@@ -4,8 +4,9 @@ import * as monaco from 'monaco-editor'
 import { initVimMode, VimMode } from 'monaco-vim'
 // Import built-in themes
 import monokaiTheme from 'monaco-themes/themes/Monokai.json'
-import githubTheme from 'monaco-themes/themes/GitHub.json'
+import githubTheme from 'monaco-themes/themes/GitHub Dark.json'
 import solarizedDarkTheme from 'monaco-themes/themes/Solarized-dark.json'
+import nordTheme from 'monaco-themes/themes/Nord.json'
 import draculaTheme from 'monaco-themes/themes/Dracula.json'
 import horizonTheme from './themes/horizon.json'
 import konngTheme from './themes/konng.json'
@@ -23,8 +24,8 @@ type ThemeDefinition = {
 const themes: ThemeDefinition[] = [
   { id: 'konng', name: 'KONNG', builtin: false, data: konngTheme },
   { id: 'horizon', name: 'Horizon', builtin: false, data: horizonTheme },
-  { id: 'vs-light', name: '默认浅色', builtin: true },
-  { id: 'vs-dark', name: '默认深色', builtin: true },
+  { id: 'nord', name: 'Nord', builtin: false, data: nordTheme },
+  { id: 'vs-dark', name: 'vs-dark', builtin: true },
   { id: 'monokai', name: 'Monokai', builtin: false, data: monokaiTheme },
   { id: 'github', name: 'GitHub', builtin: false, data: githubTheme },
   { id: 'solarized-dark', name: 'Solarized Dark', builtin: false, data: solarizedDarkTheme },
