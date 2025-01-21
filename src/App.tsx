@@ -179,6 +179,9 @@ function App() {
       
       // Switch to new tab
       setActiveTab(tabId)
+      
+      // Restore the tab state when changing tabs
+      restoreTabState(tabId)
     }
   }
 
@@ -295,7 +298,7 @@ function App() {
     lineNumbers: 'on',
     cursorStyle: 'line',
     cursorBlinking: 'smooth',
-    cursorSmoothCaretAnimation: true,
+    cursorSmoothCaretAnimation: 'on', // Changed from true to 'on'
     smoothScrolling: true,
     wordWrap: 'on',
     wordWrapColumn: 120,
@@ -331,7 +334,7 @@ function App() {
       strings: true,
     },
     acceptSuggestionOnEnter: 'smart',
-    suggestOnTriggerCharacters: 'on',
+    suggestOnTriggerCharacters: true, // Changed from 'on' to true
     folding: true,
     foldingStrategy: 'auto',
     showFoldingControls: 'always',
@@ -563,4 +566,3 @@ function App() {
 }
 
 export default App
-
