@@ -1,0 +1,372 @@
+:root {
+  --elegant-bg: #1a1b26;
+  --elegant-bg-light: #24283b;
+  --elegant-fg: #c0caf5;
+  --elegant-accent: #7aa2f7;
+  --elegant-accent-soft: #7aa2f780;
+  --elegant-border: #414868;
+  --elegant-selection: #2f354f;
+  --elegant-text-muted: #565f89;
+  --elegant-shadow: rgba(0, 0, 0, 0.2);
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  background-color: var(--elegant-bg);
+  color: var(--elegant-fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  padding: 1.2rem 0.8rem;
+  border-right: 1px solid var(--elegant-border);
+  background-color: var(--elegant-bg-light);
+  box-shadow: 2px 0 4px var(--elegant-shadow);
+  min-width: 4rem;
+}
+
+.tab {
+  width: 3rem;
+  height: 3rem;
+  margin: 0.4rem 0;
+  border: none;
+  border-radius: 0.6rem;
+  background: var(--elegant-bg);
+  color: var(--elegant-text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 
+    inset 0 0 0 1px var(--elegant-border),
+    0 2px 4px var(--elegant-shadow);
+}
+
+.tab:not(:last-child)::after {
+  display: none;
+}
+
+.tab:hover {
+  background-color: var(--elegant-selection);
+  color: var(--elegant-fg);
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 0 0 0 1px var(--elegant-accent-soft),
+    0 4px 8px var(--elegant-shadow);
+}
+
+.tab.active {
+  background-color: var(--elegant-accent);
+  color: var(--elegant-bg);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 0 0 1px var(--elegant-accent),
+    0 4px 12px var(--elegant-accent-soft);
+}
+
+.tab.active::after {
+  color: var(--elegant-bg);
+  opacity: 0.9;
+}
+
+/* 添加按钮特殊样式 */
+.tab:last-child {
+  margin-top: 0.8rem;
+  background: none;
+  border: 1.5px dashed var(--elegant-accent);
+  color: var(--elegant-accent);
+  font-size: 1.2rem;
+  box-shadow: none;
+}
+
+.tab:last-child:hover {
+  background-color: var(--elegant-selection);
+  border-style: solid;
+}
+
+.editor-container {
+  flex: 1;
+  position: relative;
+  padding: 1.2rem 1.5rem;
+  background-color: var(--elegant-bg);
+  transition: all 0.3s ease;
+}
+
+.editor-container.focused {
+  box-shadow: none;
+}
+
+.editor-container .monaco-editor {
+  padding: 0.5rem 0;
+  border-radius: 0.4rem;
+  overflow: hidden !important;
+}
+
+.editor-container .monaco-editor .minimap {
+  z-index: 1;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  border-right: 1px solid var(--elegant-border);
+  background-color: var(--elegant-bg);
+}
+
+.editor-container .monaco-editor .minimap:hover {
+  opacity: 1;
+}
+
+/* 优化 minimap 滑块样式 */
+.editor-container .monaco-editor .minimap-slider {
+  background: var(--elegant-border);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.editor-container .monaco-editor .minimap-slider:hover {
+  opacity: 0.5;
+}
+
+.editor-container .monaco-editor .minimap-slider.active {
+  opacity: 0.5;
+}
+
+.editor-container .monaco-editor .cursor {
+  transition: all 0.1s ease;
+}
+
+/* 优化滚动条样式 */
+.editor-container .monaco-editor .scrollbar {
+  transition: all 0.3s ease;
+}
+
+.editor-container .monaco-editor .scrollbar.vertical {
+  width: 12px;
+}
+
+.editor-container .monaco-editor .scrollbar.horizontal {
+  height: 12px;
+}
+
+.editor-container .monaco-editor .scrollbar .slider {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+/* 优化选择区域样式 */
+.editor-container .monaco-editor .selected-text {
+  border-radius: 2px;
+  background-color: var(--elegant-selection) !important;
+}
+
+/* 优化行号区域样式 */
+.editor-container .monaco-editor .line-numbers {
+  font-family: "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", monospace;
+  font-size: 0.85em;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.editor-container.focused .monaco-editor .line-numbers {
+  opacity: 0.8;
+}
+
+/* 优化括号匹配高亮 */
+.editor-container .monaco-editor .bracket-match {
+  animation: bracket-flash 0.5s ease-in-out;
+}
+
+@keyframes bracket-flash {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  padding: 1.2rem;
+  border-left: 1px solid var(--elegant-border);
+  gap: 0.8rem;
+  background-color: var(--elegant-bg-light);
+  box-shadow: -2px 0 4px var(--elegant-shadow);
+  width: 6rem;
+  align-items: center;
+}
+
+.controls button {
+  width: 5rem;
+  padding: 0.7rem 0;
+  border: 1.5px solid var(--elegant-accent);
+  border-radius: 0.6rem;
+  background: none;
+  color: var(--elegant-accent);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px var(--elegant-shadow);
+}
+
+.controls button:hover {
+  background-color: var(--elegant-selection);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px var(--elegant-shadow);
+  border-color: var(--elegant-fg);
+  color: var(--elegant-fg);
+}
+
+.controls button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px var(--elegant-shadow);
+  background-color: var(--elegant-accent);
+  border-color: var(--elegant-accent);
+  color: var(--elegant-bg);
+}
+
+.controls button[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  right: calc(100% + 0.8rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--elegant-bg);
+  color: var(--elegant-fg);
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  border: 1px solid var(--elegant-border);
+  box-shadow: 0 2px 8px var(--elegant-shadow);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.theme-select {
+  width: 5rem;
+  padding: 0.7rem 0;
+  border: 1.5px solid var(--elegant-accent);
+  border-radius: 0.6rem;
+  background: none;
+  color: var(--elegant-accent);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+  background-color: var(--elegant-bg);
+  box-shadow: 0 2px 4px var(--elegant-shadow);
+  text-align: center;
+  text-align-last: center;
+}
+
+.theme-select:hover {
+  border-color: var(--elegant-fg);
+  color: var(--elegant-fg);
+  box-shadow: 0 4px 8px var(--elegant-shadow);
+}
+
+.theme-select:focus {
+  border-color: var(--elegant-fg);
+  box-shadow: 0 0 0 2px var(--elegant-accent-soft);
+}
+
+.theme-select option {
+  background-color: var(--elegant-bg);
+  color: var(--elegant-fg);
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.vim-status {
+  display: none;
+}
+
+/* 确保状态栏完全隐藏 */
+#vim-status {
+  display: none !important;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--elegant-bg);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--elegant-border);
+  border-radius: 4px;
+  border: 2px solid var(--elegant-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--elegant-text-muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--elegant-bg);
+}
+
+/* 确保所有文本居中对齐 */
+.controls button,
+.theme-select,
+.theme-select option {
+  text-align: center;
+  -webkit-text-align-last: center;
+  text-align-last: center;
+}
+
+/* 移除 Monaco 编辑器的边框 */
+.monaco-editor .focused {
+  outline: none !important;
+  border: none !important;
+}
+
+.monaco-editor-background {
+  outline: none !important;
+  border: none !important;
+}
+
+.monaco-editor .overflow-guard {
+  outline: none !important;
+  border: none !important;
+}
+
+/* 优化行号和编辑器内容的间距 */
+.editor-container .monaco-editor .margin-view-overlays {
+  padding-right: 0.8rem !important;
+}
+
+/* 优化活动行高亮 */
+.monaco-editor .current-line {
+  border: none !important;
+  background-color: var(--elegant-selection) !important;
+}
+
+/* 优化搜索高亮 */
+.monaco-editor .findMatch {
+  background-color: var(--elegant-accent) !important;
+  border: none !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 0 2px var(--elegant-accent-soft) !important;
+}
+
+.monaco-editor .findMatchHighlight {
+  background-color: var(--elegant-accent-soft) !important;
+  border: none !important;
+  border-radius: 2px !important;
+}
