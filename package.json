@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "postinstall": "tsc -b && vite build --mode production"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
@@ -32,5 +31,25 @@
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5"
+  },
+  "build": {
+    "appId": "com.your.app",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ]
   }
 }

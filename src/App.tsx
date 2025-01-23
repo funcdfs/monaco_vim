@@ -283,7 +283,7 @@ function App() {
     insertSpaces: true,
     detectIndentation: false,
     fontSize: 14,
-    fontFamily: "'SF Mono', Monaco, Menlo, 'Courier New', monospace",
+    fontFamily: "'Monaco, Menlo, 'Courier New', monospace",
     fontLigatures: true,
     minimap: { 
       enabled: true,
