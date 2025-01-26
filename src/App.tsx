@@ -378,6 +378,46 @@ function App() {
         editor.setValue('')
       })
       
+      // Windows style shortcuts - 修改为更可靠的系统剪贴板操作
+      VimMode.Vim.map('<C-a>', 'ggVG', 'normal')      // Ctrl+A 全选
+      
+      // 复制相关
+      VimMode.Vim.map('<C-c>', 'ggVG"+y', 'normal')   // Ctrl+C 在普通模式下全选并复制到系统剪贴板
+      VimMode.Vim.map('<C-c>', '"+y', 'visual')       // Ctrl+C 在可视模式下复制到系统剪贴板
+      
+      // 粘贴相关 - 修改这部分
+      VimMode.Vim.map('<C-v>', '"+P', 'normal')       // 修改：使用大写P在当前光标前粘贴
+      VimMode.Vim.map('<C-v>', 'i<C-r>+', 'normal')   // 新增：另一种粘贴方式
+      VimMode.Vim.map('<C-v>', '<C-r>+', 'insert')    // 修改：简化插入模式下的粘贴命令
+      
+      // 剪切相关
+      VimMode.Vim.map('<C-x>', '"+d', 'visual')       // Ctrl+X 在可视模式下剪切到系统剪贴板
+      
+      // 撤销重做
+      VimMode.Vim.map('<C-z>', 'u', 'normal')         // Ctrl+Z 撤销
+      VimMode.Vim.map('<C-y>', '<C-r>', 'normal')     // Ctrl+Y 重做
+
+      // 添加额外的粘贴命令以确保兼容性
+      VimMode.Vim.defineEx('paste', 'pa', () => {
+        navigator.clipboard.readText().then(text => {
+          const editor = editorRef.current
+          if (editor) {
+            const position = editor.getPosition()
+            if (position) {
+              editor.executeEdits('paste', [{
+                range: new monaco.Range(
+                  position.lineNumber,
+                  position.column,
+                  position.lineNumber,
+                  position.column
+                ),
+                text: text
+              }])
+            }
+          }
+        })
+      })
+
       return vim
     } catch (error) {
       console.error('Error initializing vim mode:', error)
@@ -505,13 +545,29 @@ function App() {
     }
   }, [])
 
-  // Add back the control button handlers
+  // 修改 handleCopy 函数
   const handleCopy = () => {
     const content = editorRef.current?.getValue()
     if (content) {
-      // Save to current tab's history
-      saveToHistory('copy')
+      // 使用 navigator.clipboard API 复制到系统剪贴板
       navigator.clipboard.writeText(content)
+        .then(() => {
+          // 可以添加一个视觉反馈，比如临时改变按钮文字
+          const copyBtn = document.getElementById('copy-btn')
+          if (copyBtn) {
+            const originalText = copyBtn.textContent
+            copyBtn.textContent = '已复制'
+            setTimeout(() => {
+              copyBtn.textContent = originalText
+            }, 1000)
+          }
+        })
+        .catch(err => {
+          console.error('复制失败:', err)
+        })
+      
+      // 保存到历史记录
+      saveToHistory('copy')
     }
   }
 
