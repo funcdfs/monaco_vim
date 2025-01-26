@@ -19,7 +19,7 @@
   height: 100vh;
   background-color: var(--elegant-bg);
   color: var(--elegant-fg);
-  font-family: "Monaco", Menlo, "Courier New", monospace;
+  font-family: "Source Code Pro", "Monaco", Menlo, Consolas, "Courier New", monospace;
 }
 
 /* 标签栏样式 */
@@ -93,7 +93,7 @@
   padding: 1.2rem 1.5rem;
   background-color: var(--elegant-bg);
   transition: all 0.3s ease;
-  font-family: "Monaco", Menlo, "Courier New", monospace;
+  font-family: "Source Code Pro", "Monaco", Menlo, Consolas, "Courier New", monospace;
 }
 
 .editor-container.focused {
@@ -163,7 +163,7 @@
 
 /* 优化行号区域样式 */
 .editor-container .monaco-editor .line-numbers {
-  font-family: "Monaco", "SF Mono", Menlo, Consolas, monospace;
+  font-family: "Source Code Pro", "Monaco", "SF Mono", Menlo, Consolas, monospace;
   font-size: 0.85em;
   opacity: 0.6;
   transition: opacity 0.3s ease;
@@ -435,7 +435,7 @@
   padding: 8px 12px;
   background: var(--elegant-bg-light);
   color: var(--elegant-fg);
-  font-family: "Monaco", Menlo, monospace;
+  font-family: "Source Code Pro", "Monaco", Menlo, Consolas, monospace;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.7px;

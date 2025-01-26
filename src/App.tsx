@@ -387,7 +387,7 @@ function App() {
     tabSize: 3,
     insertSpaces: true,
     fontSize: 14,
-    fontFamily: "Monaco, Menlo, 'Courier New', monospace",
+    fontFamily: "'Source Code Pro', Monaco, Menlo, Consolas, 'Courier New', monospace",
     minimap: { 
       enabled: true,
       side: 'left',
