@@ -1,679 +1,457 @@
-/* 主题变量 */
-:root {
-  --elegant-bg: #1a1b26;
-  --elegant-bg-light: #24283b;
-  --elegant-fg: #c0caf5;
-  --elegant-accent: #7aa2f7;
-  --elegant-accent-soft: #7aa2f780;
-  --elegant-border: #414868;
-  --elegant-selection: #2f354f;
-  --elegant-text-muted: #565f89;
-  --elegant-shadow: rgba(0, 0, 0, 0.2);
-  --elegant-visual: #bb9af7;
-  --elegant-replace: #f7768e;
+/* 基础样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* 基础布局 */
+/* 主容器 */
 .app-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
   height: 100vh;
-  min-width: 800px;  /* 添加最小宽度 */
-  background-color: var(--elegant-bg);
-  color: var(--elegant-fg);
-  font-family: "Source Code Pro", "Monaco", Menlo, Consolas, "Courier New", monospace;
+  background-color: #1e1e1e;
+  position: relative;
+  overflow: hidden;
+  min-width: 400px;
+  gap: 1px;
 }
 
-/* 标签栏样式 - 固定宽度 */
+/* 左侧标签栏 */
 .tabs {
   display: flex;
   flex-direction: column;
-  padding: 1.2rem 0.8rem;
-  border-right: 1px solid var(--elegant-border);
-  background-color: var(--elegant-bg-light);
-  box-shadow: 2px 0 4px var(--elegant-shadow);
-  width: 4.6rem;     /* 固定宽度 */
-  flex-shrink: 0;    /* 防止收缩 */
+  background-color: #252526;
+  padding: 10px 6px;
+  gap: 6px;
+  border-right: 1px solid rgba(60, 60, 60, 0.6);
+  width: 64px;
 }
 
 .tab {
-  width: 3rem;
-  height: 3rem;
-  margin: 0.4rem 0;
+  width: 52px;
+  height: 36px;
   border: none;
-  border-radius: 0.6rem;
-  background: var(--elegant-bg);
-  color: var(--elegant-text-muted);
+  border-radius: 6px;
+  background-color: #2d2d2d;
+  color: #9da5b4;
   cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.15s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
-    inset 0 0 0 1px var(--elegant-border),
-    0 2px 4px var(--elegant-shadow);
-  font-family: inherit;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .tab:hover {
-  background-color: var(--elegant-selection);
-  color: var(--elegant-fg);
+  background-color: #353535;
+  color: #fff;
   transform: translateY(-1px);
-  box-shadow: 
-    inset 0 0 0 1px var(--elegant-accent-soft),
-    0 4px 8px var(--elegant-shadow);
 }
 
 .tab.active {
-  background-color: var(--elegant-accent);
-  color: var(--elegant-bg);
-  transform: translateY(-1px);
-  box-shadow: 
-    0 0 0 1px var(--elegant-accent),
-    0 4px 12px var(--elegant-accent-soft);
+  background-color: #0366d6;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(3, 102, 214, 0.3);
 }
 
-/* 添加标签按钮 */
+/* 修改左侧标签栏的加号按钮样式 */
 .tab:last-child {
-  margin-top: 0.8rem;
-  background: none;
-  border: 1.5px dashed var(--elegant-accent);
-  color: var(--elegant-accent);
-  font-size: 1.2rem;
-  box-shadow: none;
+  border: 1px dashed rgba(60, 60, 60, 0.8);
+  background-color: transparent;
+  color: #6e7681;
+  font-size: 18px;
+  font-weight: 300;
+  transition: all 0.2s ease;
 }
 
 .tab:last-child:hover {
-  background-color: var(--elegant-selection);
-  border-style: solid;
+  border-color: #0366d6;
+  color: #0366d6;
+  background-color: transparent;
+  transform: none;
 }
 
-/* 编辑器容器 - 自适应宽度 */
+.tab:last-child:active {
+  transform: none;
+  opacity: 0.7;
+}
+
+/* 编辑器容器 */
 .editor-container {
-  flex: 1;           /* 占用剩余空间 */
-  min-width: 400px;  /* 最小宽度 */
   position: relative;
-  padding: 1.2rem 1.5rem;
-  padding-bottom: calc(1.2rem + 28px);  /* 为状态栏留出空间 */
-  background-color: var(--elegant-bg);
-  transition: all 0.3s ease;
-  overflow: hidden;  /* 防止内容溢出 */
-  font-family: "Source Code Pro", "Monaco", Menlo, Consolas, "Courier New", monospace;
+  width: 100%;
+  height: 100%;
+  background-color: #1e1e1e;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .editor-container.focused {
-  box-shadow: none;
+  outline: 1px solid #0366d6;
 }
 
-.editor-container .monaco-editor {
-  padding: 0.5rem 0;
-  border-radius: 0.4rem;
-  overflow: hidden !important;
+/* Monaco 编辑器样式 */
+.monaco-editor {
+  width: 100% !important;
+  height: 100% !important;
+  padding-left: 0 !important;
 }
 
-.editor-container .monaco-editor .minimap {
-  z-index: 1;
-  opacity: 0.8;
-  transition: opacity 0.3s ease;
-  border-right: 1px solid var(--elegant-border);
-  background-color: var(--elegant-bg);
+/* 调整编辑器内部间距 */
+.monaco-editor .margin {
+  margin-left: 0 !important;
 }
 
-.editor-container .monaco-editor .minimap:hover {
-  opacity: 1;
+.monaco-editor .lines-content {
+  padding-left: 4px !important;
 }
 
-/* 优化 minimap 滑块样式 */
-.editor-container .monaco-editor .minimap-slider {
-  background: var(--elegant-border);
-  opacity: 0.3;
-  transition: opacity 0.3s ease;
-}
-
-.editor-container .monaco-editor .minimap-slider:hover {
-  opacity: 0.5;
-}
-
-.editor-container .monaco-editor .minimap-slider.active {
-  opacity: 0.5;
-}
-
-.editor-container .monaco-editor .cursor {
-  transition: all 0.1s ease;
-}
-
-/* 优化滚动条样式 */
-.editor-container .monaco-editor .scrollbar {
-  transition: all 0.3s ease;
-}
-
-.editor-container .monaco-editor .scrollbar.vertical {
-  width: 12px;
-}
-
-.editor-container .monaco-editor .scrollbar.horizontal {
-  height: 12px;
-}
-
-.editor-container .monaco-editor .scrollbar .slider {
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-/* 优化选择区域样式 */
-.editor-container .monaco-editor .selected-text {
-  border-radius: 2px;
-  background-color: var(--elegant-selection) !important;
-}
-
-/* 优化行号区域样式 */
-.editor-container .monaco-editor .line-numbers {
-  font-family: "Source Code Pro", "Monaco", "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.85em;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.editor-container.focused .monaco-editor .line-numbers {
-  opacity: 0.8;
-}
-
-/* 优化括号匹配高亮 */
-.editor-container .monaco-editor .bracket-match {
-  animation: bracket-flash 0.5s ease-in-out;
-}
-
-@keyframes bracket-flash {
-  0% { opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { opacity: 0.3; }
-}
-
-/* 控制栏容器 - 固定宽度 */
-.controls {
-  display: flex;
-  flex-direction: column;
-  padding: 0.8rem;
-  border-left: 1px solid var(--elegant-border);
-  background-color: var(--elegant-bg-light);
-  box-shadow: -2px 0 4px var(--elegant-shadow);
-  width: 6.2rem;     /* 固定宽度 */
-  flex-shrink: 0;    /* 防止收缩 */
-  gap: 0.6rem;
-  align-items: center;
-}
-
-/* 控制按钮和主题选择器统一基础样式 */
-.controls button,
-.theme-select {
-  width: 5rem;    /* 统一宽度 */
-  height: 2.2rem; /* 统一高度 */
-  padding: 0 0.8rem 0 2.2rem; /* 统一内边距 */
-  border: 1px solid var(--elegant-border); /* 统一边框 */
-  border-radius: 0.4rem;
-  background: var(--elegant-bg);
-  color: var(--elegant-text-muted);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px var(--elegant-shadow);
-  position: relative;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 图标基础样式统一 */
-.controls button::before,
-.theme-select::before,
-.theme-select::after {
-  content: '';
+/* Vim 状态栏 */
+.vim-status {
   position: absolute;
-  width: 14px;  /* 统一图标大小 */
-  height: 14px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0.7;  /* 默认状态稍微透明 */
+  bottom: 0;
+  left: 0;
+  padding: 6px 12px;
+  background-color: rgba(37, 37, 38, 0.95);
+  color: #9da5b4;
+  font-size: 12px;
+  z-index: 10;
+  font-family: 'Source Code Pro', monospace;
+  backdrop-filter: blur(4px);
+  border-top-right-radius: 6px;
 }
 
-/* 图标位置统一 */
-.controls button::before,
-.theme-select::before {
-  left: 0.6rem;
+/* 不同模式的颜色 */
+.vim-status.normal { color: #98c379; }
+.vim-status.insert { color: #61afef; }
+.vim-status.visual { color: #c678dd; }
+.vim-status.replace { color: #e06c75; }
+
+/* GitHub 链接 */
+.github-link {
+  position: absolute;
+  bottom: 6px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(157, 165, 180, 0.8);
+  text-decoration: none;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(37, 37, 38, 0.6);
+  backdrop-filter: blur(4px);
 }
 
-.theme-select::after {
-  right: 0.6rem;
-}
-
-/* 主题选择器特殊调整 */
-.theme-select {
-  padding-right: 2rem;  /* 为箭头留出空间 */
-  text-align: left;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* 悬停状态统一 */
-.controls button:hover,
-.theme-select:hover {
-  background-color: var(--elegant-selection);
-  border-color: var(--elegant-accent);
-  color: var(--elegant-fg);
+.github-link:hover {
+  color: #fff;
+  background-color: rgba(37, 37, 38, 0.8);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px var(--elegant-shadow);
 }
 
-/* 图标悬停效果 */
-.controls button:hover::before,
-.theme-select:hover::before,
-.theme-select:hover::after {
-  opacity: 1;
-}
-
-/* 激活状态统一 */
-.controls button:active,
-.theme-select:active,
-#tabsize-btn[title*="3"] {
-  background-color: var(--elegant-selection);
-  border-color: var(--elegant-accent);
-  color: var(--elegant-fg);
-  transform: translateY(0);
-  box-shadow: 0 1px 2px var(--elegant-shadow);
-}
-
-/* 主题选择器选项样式 */
-.theme-select option {
-  padding: 0.5rem 0.8rem;
-  font-size: 0.8rem;
-  line-height: 1.2;
-  background-color: var(--elegant-bg);
-  color: var(--elegant-text-muted);
-  border: none;
-}
-
-.theme-select option:checked {
-  background-color: var(--elegant-selection);
-  color: var(--elegant-fg);
-}
-
-/* 确保下拉箭头位置正确 */
-.theme-select::after {
-  right: 0.7rem;
-  width: 14px;
-  height: 14px;
-}
-
-/* 主题选择器图标位置 */
-.theme-select::before {
-  left: 0.7rem;
-  width: 15px;
-  height: 15px;
-}
-
-/* 按钮和选择器图标基础样式 */
-.controls button::before,
-.theme-select::before,
-.theme-select::after {
-  content: '';
-  position: absolute;
+.github-icon {
   width: 16px;
   height: 16px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%239da5b4"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>');
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  top: 50%;
-  transform: translateY(-50%);
+  transition: all 0.2s ease;
 }
 
-/* 按钮图标位置 */
-.controls button::before,
-.theme-select::before {
-  left: 0.7rem;
-  width: 15px;
-  height: 15px;
+/* 悬停时改变图标颜色 */
+.github-link:hover .github-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%23ffffff"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>');
 }
 
-/* 主题选择器主题图标 */
-.theme-select::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='5'%3E%3C/circle%3E%3Cline x1='12' y1='1' x2='12' y2='3'%3E%3C/line%3E%3Cline x1='12' y1='21' x2='12' y2='23'%3E%3C/line%3E%3Cline x1='4.22' y1='4.22' x2='5.64' y2='5.64'%3E%3C/line%3E%3Cline x1='18.36' y1='18.36' x2='19.78' y2='19.78'%3E%3C/line%3E%3Cline x1='1' y1='12' x2='3' y2='12'%3E%3C/line%3E%3Cline x1='21' y1='12' x2='23' y2='12'%3E%3C/line%3E%3Cline x1='4.22' y1='19.78' x2='5.64' y2='18.36'%3E%3C/line%3E%3Cline x1='18.36' y1='5.64' x2='19.78' y2='4.22'%3E%3C/line%3E%3C/svg%3E");
+/* 右侧控制栏 */
+.right-controls {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 6px;
+  gap: 8px;
+  background-color: #252526;
+  border-left: 1px solid rgba(60, 60, 60, 0.6);
+  width: 64px;
+  grid-column: 3;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+  height: 100%;
 }
 
-/* 主题选择器下拉箭头 */
-.theme-select::after {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+.right-controls:hover {
+  opacity: 1;
 }
 
-/* 悬停和激活状态 */
-.controls button:hover,
-.theme-select:hover {
+/* Vim/Text 按钮组 */
+.right-controls-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 0px;
+}
+
+/* 功能按钮组 - 居中布局 */
+.right-controls-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 42px;
+  padding: 16px 0;
+}
+
+.control-btn {
+  width: 52px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2d2d2d;
+  color: #9da5b4;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 0 4px;
+  opacity: 1;
+}
+
+.control-btn:hover {
+  background-color: #353535;
+  color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px var(--elegant-shadow);
-  background-color: var(--elegant-selection);
-  border-color: var(--elegant-accent);
 }
 
-.controls button:active,
-.theme-select:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px var(--elegant-shadow);
+.control-btn.active {
+  background-color: #0366d6;
+  color: #ffffff;
 }
 
-/* 图标悬停效果 */
-.controls button:hover::before,
-.theme-select:hover::before,
-.theme-select:hover::after {
-  filter: brightness(1.2);
+/* 添加模式按钮特殊样式 */
+.mode-btn {
+  font-family: 'Source Code Pro', monospace;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
-/* 删除其他重复的主题选择器相关样式 */
-
-.vim-status {
-  display: none;
-  font-family: inherit;
+.mode-btn.active {
+  background-color: #0366d6;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(3, 102, 214, 0.5);
 }
 
-/* 确保状态栏完全隐藏 */
-#vim-status {
-  display: none !important;
+/* 主题选择器 */
+.theme-select-top {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  background-color: rgba(45, 45, 45, 0.95);
+  color: #9da5b4;
+  border: 1px solid rgba(60, 60, 60, 0.6);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* 滚动条样式优化 */
+.theme-select-top:hover {
+  background-color: #353535;
+  border-color: #0366d6;
+}
+
+.theme-select-top:focus {
+  border-color: #0366d6;
+}
+
+/* 错误边界样式 */
+.editor-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  background-color: #1e1e1e;
+  color: #e06c75;
+}
+
+.editor-error button {
+  margin-top: 16px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #0366d6;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.editor-error button:hover {
+  background-color: #0256b4;
+}
+
+/* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #1e1e1e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--elegant-border);
-  border: 3px solid var(--elegant-bg);
+  background-color: #424242;
   border-radius: 6px;
-  min-height: 40px;
+  border: 3px solid #1e1e1e;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--elegant-text-muted);
+  background-color: #525252;
 }
 
-::-webkit-scrollbar-corner {
-  background: transparent;
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 64px minmax(0, 1fr) 64px;
+  }
+
+  .theme-select-top {
+    right: 72px;
+  }
 }
 
-/* Monaco 编辑器滚动条样式 */
-.editor-container .monaco-scrollable-element > .scrollbar > .slider {
-  background: var(--elegant-border) !important;
-  border: 3px solid var(--elegant-bg) !important;
-  border-radius: 6px !important;
-  opacity: 0.7 !important;
+/* 功能按钮基础样式 */
+.right-controls-bottom .control-btn {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  opacity: 1;
+  border-radius: 8px;
 }
 
-.editor-container .monaco-scrollable-element > .scrollbar > .slider:hover {
-  background: var(--elegant-text-muted) !important;
-  opacity: 0.8 !important;
-}
-
-.editor-container .monaco-scrollable-element > .scrollbar {
-  background: transparent !important;
-}
-
-/* 确保滚动条不会闪烁 */
-.editor-container .monaco-scrollable-element > .scrollbar.visible {
-  opacity: 1 !important;
-}
-
-/* 优化滚动条交互区域 */
-.editor-container .monaco-scrollable-element > .scrollbar > .slider {
-  margin: 0 !important;
-  border-radius: 6px !important;
-}
-
-/* 确保所有文本居中对齐 */
-.controls button,
-.theme-select,
-.theme-select option {
-  text-align: center;
-}
-
-.theme-select,
-.theme-select option {
-  text-align: left;
-  -webkit-text-align-last: left;
-  text-align-last: left;
-}
-
-/* 移除 Monaco 编辑器的边框 */
-.monaco-editor .focused {
-  outline: none !important;
-  border: none !important;
-}
-
-.monaco-editor-background {
-  outline: none !important;
-  border: none !important;
-}
-
-.monaco-editor .overflow-guard {
-  outline: none !important;
-  border: none !important;
-}
-
-/* 优化行号和编辑器内容的间距 */
-.editor-container .monaco-editor .margin-view-overlays {
-  padding-right: 0.8rem !important;
-}
-
-/* 优化活动行高亮 */
-.monaco-editor .current-line {
-  border: none !important;
-/*  background-color: var(--elegant-selection) !important;*/
-}
-
-/* 优化搜索高亮 */
-.monaco-editor .findMatch {
-  background-color: var(--elegant-accent) !important;
-  border: none !important;
-  border-radius: 2px !important;
-  box-shadow: 0 0 0 2px var(--elegant-accent-soft) !important;
-}
-
-.monaco-editor .findMatchHighlight {
-  background-color: var(--elegant-accent-soft) !important;
-  border: none !important;
-  border-radius: 2px !important;
-}
-
-/* 添加 vim 模式状态栏样式 */
-.vim-mode-status {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 28px;
-  padding: 6px 12px;
-  background: var(--elegant-bg-light);
-  color: var(--elegant-fg);
-  font-family: "Source Code Pro", "Monaco", Menlo, Consolas, monospace;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  border-top: 1px solid var(--elegant-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 1;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* 模式文本样式 */
-.mode-text {
-  display: flex;
-  align-items: center;
-  gap: 7px;  /* 图标和文字之间的间距 */
-}
-
-/* GitHub 链接样式 */
-.github-link {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--elegant-text-muted);  /* 改为默认使用次要文字颜色 */
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  transition: all 0.2s ease;  /* 改为 all 以包含所有变化效果 */
-}
-
-/* GitHub 图标 */
-.github-icon {
-  width: 14px;
-  height: 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23565f89' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  display: inline-block;
-  transition: all 0.2s ease;
-}
-
-/* 统一悬停效果 */
-.github-link:hover {
-  color: var(--elegant-accent);
-}
-
-.github-link:hover .github-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22'%3E%3C/path%3E%3C/svg%3E");
-}
-
-/* 移除旧的图标样式，改为在 .mode-text 中定位 */
-.mode-text::before {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  content: '';
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  vertical-align: text-bottom;
-}
-
-/* 不同模式的样式 */
-.vim-mode-status.normal {
-  background: var(--elegant-bg-light);
-  color: var(--elegant-accent);
-}
-
-.vim-mode-status.insert {
-  background: var(--elegant-bg-light);
-  color: var(--elegant-accent);
-}
-
-.vim-mode-status.visual,
-.vim-mode-status.visual\ line,
-.vim-mode-status.visual\ block {
-  background: var(--elegant-bg-light);
-  color: var(--elegant-visual);
-}
-
-.vim-mode-status.replace {
-  background: var(--elegant-bg-light);
-  color: var(--elegant-replace);
-}
-
-/* 按钮图标 */
 /* 复制按钮 */
-#copy-btn::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'%3E%3C/path%3E%3Crect x='8' y='2' width='8' height='4' rx='1' ry='1'%3E%3C/rect%3E%3C/svg%3E");
+#copy-btn {
+  background-color: rgba(45, 133, 49, 0.7);
+  color: #ffffff;
 }
 
-/* 初始按钮 */
-#reset-btn::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 2v6h6'%3E%3C/path%3E%3Cpath d='M3 13a9 9 0 1 0 3-7.7L3 8'%3E%3C/path%3E%3C/svg%3E");
+#copy-btn:hover {
+  background-color: rgba(55, 166, 65, 0.9);
+  box-shadow: 0 0 8px rgba(45, 133, 49, 0.3);
+  opacity: 1;
 }
 
 /* 清空按钮 */
-#clear-btn::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'%3E%3C/path%3E%3Cpath d='M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6'%3E%3C/path%3E%3Cpath d='M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'%3E%3C/path%3E%3C/svg%3E");
+#clear-btn {
+  background-color: rgba(166, 49, 49, 0.7);
+  color: #ffffff;
+}
+
+#clear-btn:hover {
+  background-color: rgba(196, 60, 60, 0.9);
+  box-shadow: 0 0 8px rgba(166, 49, 49, 0.3);
+  opacity: 1;
+}
+
+/* 初始按钮 */
+#reset-btn {
+  background-color: rgba(166, 123, 49, 0.7);
+  color: #ffffff;
+}
+
+#reset-btn:hover {
+  background-color: rgba(196, 154, 60, 0.9);
+  box-shadow: 0 0 8px rgba(166, 123, 49, 0.3);
+  opacity: 1;
 }
 
 /* 撤销按钮 */
-#undo-btn::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'%3E%3C/path%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11'%3E%3C/path%3E%3C/svg%3E");
+#undo-btn {
+  background-color: rgba(133, 49, 166, 0.7);
+  color: #ffffff;
 }
 
-/* 主题选择器 */
-#theme-select::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='5'%3E%3C/circle%3E%3Cline x1='12' y1='1' x2='12' y2='3'%3E%3C/line%3E%3Cline x1='12' y1='21' x2='12' y2='23'%3E%3C/line%3E%3Cline x1='4.22' y1='4.22' x2='5.64' y2='5.64'%3E%3C/line%3E%3Cline x1='18.36' y1='18.36' x2='19.78' y2='19.78'%3E%3C/line%3E%3Cline x1='1' y1='12' x2='3' y2='12'%3E%3C/line%3E%3Cline x1='21' y1='12' x2='23' y2='12'%3E%3C/line%3E%3Cline x1='4.22' y1='19.78' x2='5.64' y2='18.36'%3E%3C/line%3E%3Cline x1='18.36' y1='5.64' x2='19.78' y2='4.22'%3E%3C/line%3E%3C/svg%3E");
+#undo-btn:hover {
+  background-color: rgba(156, 60, 196, 0.9);
+  box-shadow: 0 0 8px rgba(133, 49, 166, 0.3);
+  opacity: 1;
 }
 
-/* TabSize 按钮图标 */
-#tabsize-btn::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h21'%3E%3C/path%3E%3Cpath d='M7 12h17'%3E%3C/path%3E%3Cpath d='M11 18h13'%3E%3C/path%3E%3C/svg%3E");
+/* 按钮激活效果 */
+.right-controls-bottom .control-btn:active {
+  transform: translateY(1px);
+  filter: brightness(1.1);
+  opacity: 1;
 }
 
-/* 激活状态特殊样式 */
-#tabsize-btn[title*="3"] {
-  background-color: var(--elegant-selection);
-  color: var(--elegant-fg);
-  border-color: var(--elegant-fg);
-}
-
-/* 添加媒体查询以处理极小宽度 */
-@media screen and (max-width: 800px) {
-  .app-container {
-    width: 800px;    /* 固定最小宽度 */
+/* 添加成功图标的动画样式 */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 24;
+    opacity: 0;
   }
-  
-  .editor-container {
-    min-width: 400px;
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
   }
 }
 
-/* vim 模式图标 */
-.mode-text::before {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  content: '';
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  vertical-align: text-bottom;
+/* 成功图标的基础样式 */
+.success-icon {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* Normal 模式图标 */
-.vim-mode-status.normal .mode-text::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+.success-icon path {
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  fill: none;
 }
 
-/* Insert 模式图标 */
-.vim-mode-status.insert .mode-text::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19l7-7 3 3-7 7-3-3z'%3E%3C/path%3E%3Cpath d='M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z'%3E%3C/path%3E%3Cpath d='M2 2l7.586 7.586'%3E%3C/path%3E%3Ccircle cx='11' cy='11' r='2'%3E%3C/circle%3E%3C/svg%3E");
+/* 显示成功图标的动画类 */
+.success .success-icon {
+  opacity: 1;
 }
 
-/* Visual 模式图标 */
-.vim-mode-status.visual .mode-text::before,
-.vim-mode-status.visual\ line .mode-text::before,
-.vim-mode-status.visual\ block .mode-text::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3h18v18H3z'%3E%3C/path%3E%3Cpath d='M13 7h4v4h-4z'%3E%3C/path%3E%3C/svg%3E");
+.success .success-icon path {
+  animation: checkmark 0.3s ease-in-out forwards;
 }
 
-/* Replace 模式图标 */
-.vim-mode-status.replace .mode-text::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'%3E%3C/path%3E%3Cpath d='M3 3v5h5'%3E%3C/path%3E%3Cpath d='M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16'%3E%3C/path%3E%3Cpath d='M16 16h5v5'%3E%3C/path%3E%3C/svg%3E");
+/* 按钮文本的过渡效果 */
+.control-btn span {
+  transition: opacity 0.2s ease;
+}
+
+.success span {
+  opacity: 0;
+  transform: scale(0.9);
 }

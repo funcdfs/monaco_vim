@@ -124,13 +124,54 @@ class EditorErrorBoundary extends React.Component<
   }
 }
 
+// 添加成功图标 SVG 组件
+const SuccessIcon = () => (
+  <svg className="success-icon" viewBox="0 0 16 16">
+    <path d="M3 8l3.5 3.5L13 4.5" />
+  </svg>
+);
+
+// 修改按钮组件，添加成功状态
+const ControlButton = ({ 
+  id, 
+  onClick, 
+  children 
+}: { 
+  id: string; 
+  onClick: () => Promise<void>; 
+  children: React.ReactNode; 
+}) => {
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleClick = async () => {
+    try {
+      await onClick();
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 1000);
+    } catch (error) {
+      console.error('Operation failed:', error);
+    }
+  };
+
+  return (
+    <button 
+      id={id}
+      className={`control-btn ${isSuccess ? 'success' : ''}`}
+      onClick={handleClick}
+    >
+      <span>{children}</span>
+      <SuccessIcon />
+    </button>
+  );
+};
+
 function App() {
   const [theme, setTheme] = useState<string>('konng')
   const [activeTab, setActiveTab] = useState(1)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const vimModeRef = useRef<any>(null)
   const [vimMode, setVimMode] = useState<string>('normal')
-  const [tabSize, setTabSize] = useState<number>(4);
+  const [isVimMode, setIsVimMode] = useState(true);
   
   // Initialize tabs with enhanced state
   const [tabs, setTabs] = useState<EditorTab[]>([
@@ -262,6 +303,7 @@ function App() {
 
   const initVimModeWithConfig = async (editor: monaco.editor.IStandaloneCodeEditor) => {
     try {
+      // 使用已有的状态栏元素，而不是创建新的
       const statusNode = document.getElementById('vim-status')!
       const vim = initVimMode(editor, statusNode)
       vimModeRef.current = vim
@@ -272,31 +314,7 @@ function App() {
           ? mode.mode.toLowerCase() 
           : 'normal'
         
-        // 设置更具描述性的模式名称
-        let displayMode = currentMode
-        switch (currentMode) {
-          case 'visual':
-            displayMode = 'VISUAL'
-            break
-          case 'visualline':
-            displayMode = 'VISUAL LINE'
-            break
-          case 'visualblock':
-            displayMode = 'VISUAL BLOCK'
-            break
-          case 'insert':
-            displayMode = 'INSERT'
-            break
-          case 'replace':
-            displayMode = 'REPLACE'
-            break
-          case 'normal':
-          default:
-            displayMode = 'NORMAL'
-            break
-        }
-        
-        setVimMode(displayMode.toLowerCase())
+        setVimMode(currentMode)
 
         // 更新编辑器光标样式
         editor.updateOptions({
@@ -311,9 +329,9 @@ function App() {
       // 添加模式变化监听
       vim.on('vim-mode-change', updateVimMode)
 
-      // 其他 vim 配置保持不变
-      VimMode.Vim.defineOption('tabstop', 2)
-      VimMode.Vim.defineOption('shiftwidth', 2)
+      // 使用固定的 tabSize 值
+      VimMode.Vim.defineOption('tabstop', 4)
+      VimMode.Vim.defineOption('shiftwidth', 4)
       VimMode.Vim.defineOption('expandtab', true)
       VimMode.Vim.defineOption('number', true)
       VimMode.Vim.defineOption('relativenumber', true)
@@ -327,9 +345,24 @@ function App() {
       VimMode.Vim.defineOption('ttimeoutlen', 10)
 
       // Basic key mappings
-      VimMode.Vim.map('kj', '<Esc>', 'insert')
-      VimMode.Vim.map('<C-c>', '<Esc>', 'insert')
+      VimMode.Vim.map('kj', '<Esc>', 'insert')  // Add back the kj mapping
       
+      // 取消绑定 Ctrl 组合键
+      VimMode.Vim.map('<C-a>', '<Nop>', 'normal')
+      VimMode.Vim.map('<C-c>', '<Nop>', 'normal')
+      VimMode.Vim.map('<C-v>', '<Nop>', 'normal')
+      VimMode.Vim.map('<C-z>', '<Nop>', 'normal')
+      
+      VimMode.Vim.map('<C-a>', '<Nop>', 'insert')
+      VimMode.Vim.map('<C-c>', '<Nop>', 'insert')
+      VimMode.Vim.map('<C-v>', '<Nop>', 'insert')
+      VimMode.Vim.map('<C-z>', '<Nop>', 'insert')
+      
+      VimMode.Vim.map('<C-a>', '<Nop>', 'visual')
+      VimMode.Vim.map('<C-c>', '<Nop>', 'visual')
+      VimMode.Vim.map('<C-v>', '<Nop>', 'visual')
+      VimMode.Vim.map('<C-z>', '<Nop>', 'visual')
+
       // Bracket jump
       VimMode.Vim.map('<TAB>', '%', 'normal')
       
@@ -376,9 +409,9 @@ function App() {
     }
   }
 
-  // 更新编辑器选项
+  // 修改 editorOptions，使用固定的 tabSize
   const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
-    tabSize: tabSize,
+    tabSize: 4,  // 改为固定值
     insertSpaces: true,
     fontSize: 14,
     fontFamily: "'Source Code Pro', Monaco, Menlo, Consolas, 'Courier New', monospace",
@@ -399,11 +432,9 @@ function App() {
       bracketPairs: true,
       indentation: true,
     },
-    // 添加折叠设置
     folding: true,
     foldingStrategy: 'indentation',
     showFoldingControls: 'always',
-    // 滚动设置
     scrollbar: {
       vertical: 'visible',
       horizontal: 'visible',
@@ -411,7 +442,6 @@ function App() {
       horizontalScrollbarSize: 12,
       useShadows: false,
     },
-    // 其他优化
     smoothScrolling: true,
     mouseWheelScrollSensitivity: 1.5,
     fastScrollSensitivity: 7,
@@ -627,47 +657,15 @@ function App() {
     const content = editorRef.current?.getValue()
     if (!content) return
 
-    try {
-      await navigator.clipboard.writeText(content)
-      
-      // 视觉反馈
-      const copyBtn = document.getElementById('copy-btn')
-      if (copyBtn) {
-        const originalText = copyBtn.textContent
-        copyBtn.textContent = '已复制'
-        setTimeout(() => {
-          copyBtn.textContent = originalText
-        }, 1000)
-      }
-      
-      // 保存到历史记录
-      saveToHistory('copy')
-    } catch (err) {
-      console.error('复制失败:', err)
-      
-      // 错误反馈
-      const copyBtn = document.getElementById('copy-btn')
-      if (copyBtn) {
-        const originalText = copyBtn.textContent
-        copyBtn.textContent = '复制失败'
-        copyBtn.style.color = 'red'
-        setTimeout(() => {
-          copyBtn.textContent = originalText
-          copyBtn.style.color = ''
-        }, 1000)
-      }
-    }
+    await navigator.clipboard.writeText(content)
+    saveToHistory('copy')
   }
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (editorRef.current) {
-      // Save current content to history before reset
       saveToHistory('reset')
-      
-      // Reset content
       editorRef.current.setValue(defaultCppCode)
       
-      // Set cursor position after reset
       const lines = defaultCppCode.split('\n')
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes('xxx')) {
@@ -679,37 +677,29 @@ function App() {
         }
       }
       
-      // Save the new state
       saveTabState(activeTab)
     }
   }
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (editorRef.current) {
-      // Save current content to history before clearing
       saveToHistory('clear')
-      
-      // Clear content
       editorRef.current.setValue('')
-      
-      // Save the new state
       saveTabState(activeTab)
     }
   }
 
-  const handleUndo = () => {
+  const handleUndo = async () => {
     const currentTab = tabs.find(t => t.id === activeTab)
     if (currentTab && currentTab.history.length > 0 && editorRef.current) {
       const lastAction = currentTab.history[currentTab.history.length - 1]
       
-      // Restore the content and cursor position
       editorRef.current.setValue(lastAction.content)
       if (lastAction.cursorPosition) {
         editorRef.current.setPosition(lastAction.cursorPosition)
         editorRef.current.focus()
       }
       
-      // Update tab state
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab
           ? {
@@ -766,17 +756,39 @@ function App() {
     }
   }, [activeTab, debouncedSaveState])
 
-  // 添加切换 TabSize 的处理函数
-  const handleTabSizeToggle = () => {
-    const newTabSize = tabSize === 4 ? 3 : 4;
-    setTabSize(newTabSize);
-    if (editorRef.current) {
-      editorRef.current.updateOptions({ tabSize: newTabSize });
+  // 修改 handleModeToggle 函数
+  const handleModeToggle = () => {
+    if (isVimMode) {
+      // 切换到文本模式
+      if (vimModeRef.current) {
+        vimModeRef.current.dispose();
+        vimModeRef.current = null;
+      }
+      setIsVimMode(false);
+      setVimMode('text');
+      
+      // 更新文本模式的光标样式
+      if (editorRef.current) {
+        editorRef.current.updateOptions({
+          cursorStyle: 'line',
+          cursorWidth: 1,
+          // 启用默认的编辑器快捷键
+          readOnly: false,
+          lineNumbers: 'on',
+        });
+      }
+    } else {
+      // 切换到 Vim 模式
+      if (editorRef.current) {
+        initVimModeWithConfig(editorRef.current);
+      }
+      setIsVimMode(true);
     }
   };
 
   return (
     <div className="app-container">
+      {/* 左侧标签页 */}
       <div className="tabs">
         {tabs.map((tab) => (
           <button
@@ -789,7 +801,8 @@ function App() {
         ))}
         <button className="tab" onClick={handleAddTab}>+</button>
       </div>
-      
+
+      {/* 编辑器容器 */}
       <div className="editor-container">
         <EditorErrorBoundary>
           <Editor
@@ -802,29 +815,29 @@ function App() {
             options={editorOptions}
           />
         </EditorErrorBoundary>
-        <div id="vim-status" className="vim-status"></div>
-        <div className={`vim-mode-status ${vimMode}`}>
-          <div className="mode-text">
-            -- {vimMode.toUpperCase()} --
-          </div>
-          <a href="https://github.com/funcdfs" className="github-link" target="_blank" rel="noopener noreferrer">
-            <span className="github-icon"></span>
-            @funcdfs
-          </a>
-        </div>
-      </div>
+        <div id="vim-status" className={`vim-status ${vimMode}`}></div>
+        
+        {/* GitHub 链接 */}
+        <a 
+          href="https://github.com/funcdfs" 
+          className="github-link" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute',
+            bottom: '4px',
+            right: '12px',
+            zIndex: 10,
+          }}
+        >
+          <span className="github-icon"></span>
+          @funcdfs
+        </a>
 
-      <div className="controls">
-        <button id="tabsize-btn" title={`TabSize: ${tabSize}`} onClick={handleTabSizeToggle}>
-          Tab{tabSize}
-        </button>
-        <button id="copy-btn" title="复制到剪贴板" onClick={handleCopy}>复制</button>
-        <button id="reset-btn" title="重置为初始代码" onClick={handleReset}>初始</button>
-        <button id="clear-btn" title="清空编辑器" onClick={handleClear}>清空</button>
-        <button id="undo-btn" title="撤销上一步" onClick={handleUndo}>撤销</button>
+        {/* 主题选择器 */}
         <select 
           id="theme-select"
-          className="theme-select"
+          className="theme-select-top"
           value={theme} 
           onChange={(e) => handleThemeChange(e.target.value)}
         >
@@ -832,6 +845,44 @@ function App() {
             <option key={theme.id} value={theme.id}>{theme.name}</option>
           ))}
         </select>
+      </div>
+
+      {/* 右侧控制栏 */}
+      <div className="right-controls">
+        <div className="right-controls-top">
+          <button 
+            className={`control-btn mode-btn ${isVimMode ? 'active' : ''}`}
+            onClick={handleModeToggle}
+          >
+            {isVimMode ? 'Vim' : 'Text'}
+          </button>
+        </div>
+        <div className="right-controls-bottom">
+          <ControlButton 
+            id="copy-btn" 
+            onClick={handleCopy}
+          >
+            COPY
+          </ControlButton>
+          <ControlButton 
+            id="clear-btn" 
+            onClick={handleClear}
+          >
+            CLEAR
+          </ControlButton>
+          <ControlButton 
+            id="reset-btn" 
+            onClick={handleReset}
+          >
+            RESET
+          </ControlButton>
+          <ControlButton 
+            id="undo-btn" 
+            onClick={handleUndo}
+          >
+            UNDO
+          </ControlButton>
+        </div>
       </div>
     </div>
   )
