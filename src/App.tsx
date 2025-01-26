@@ -69,8 +69,8 @@ using int64 = long long;
 #define println(...)   std::cout << __VA_ARGS__ << '\\n'
 
 int main() {
-   xxx
-   return 0; 
+    xxx
+    return 0; 
 }`
 
 // 添加防抖函数
@@ -128,6 +128,7 @@ function App() {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const vimModeRef = useRef<any>(null)
   const [vimMode, setVimMode] = useState<string>('normal')
+  const [tabSize, setTabSize] = useState<number>(4);
   
   // Initialize tabs with enhanced state
   const [tabs, setTabs] = useState<EditorTab[]>([
@@ -384,7 +385,7 @@ function App() {
 
   // Add editor configuration options
   const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
-    tabSize: 3,
+    tabSize: tabSize,
     insertSpaces: true,
     fontSize: 14,
     fontFamily: "'Source Code Pro', Monaco, Menlo, Consolas, 'Courier New', monospace",
@@ -603,6 +604,15 @@ function App() {
     }
   }, [activeTab, debouncedSaveState])
 
+  // 添加切换 TabSize 的处理函数
+  const handleTabSizeToggle = () => {
+    const newTabSize = tabSize === 4 ? 3 : 4;
+    setTabSize(newTabSize);
+    if (editorRef.current) {
+      editorRef.current.updateOptions({ tabSize: newTabSize });
+    }
+  };
+
   return (
     <div className="app-container">
       <div className="tabs">
@@ -637,6 +647,9 @@ function App() {
       </div>
 
       <div className="controls">
+        <button id="tabsize-btn" title={`TabSize: ${tabSize}`} onClick={handleTabSizeToggle}>
+          Tab{tabSize}
+        </button>
         <button id="copy-btn" title="复制到剪贴板" onClick={handleCopy}>复制</button>
         <button id="reset-btn" title="重置为初始代码" onClick={handleReset}>初始</button>
         <button id="clear-btn" title="清空编辑器" onClick={handleClear}>清空</button>
