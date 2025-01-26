@@ -347,12 +347,13 @@ function App() {
       VimMode.Vim.map('L', '$', 'visual')
       
       // Leader key mappings
-      VimMode.Vim.map('\\/', ':nohls<CR>', 'normal')
+      VimMode.Vim.map('\\h', ':nohls<CR>', 'normal')
       VimMode.Vim.map('\\q', ':q<CR>', 'normal')
       VimMode.Vim.map('\\w', ':w<CR>', 'normal')
       VimMode.Vim.map('\\d', 'ggdG', 'normal')
-      VimMode.Vim.map('\\c', 'ggVG"+y', 'normal')  // Copy all in normal mode
-      VimMode.Vim.map('\\c', '"+y', 'visual')      // Copy selection in visual mode
+      VimMode.Vim.map('\\c', 'ggVG"+y', 'normal')  // 复制全部内容到系统剪贴板
+      VimMode.Vim.map('\\y', '"+y', 'visual')      // 复制选中内容到系统剪贴板
+      VimMode.Vim.map('\\p', '"+p', 'normal')      // 从系统剪贴板粘贴
       
       // Search center screen
       VimMode.Vim.map('n', 'nzz', 'normal')
@@ -367,36 +368,6 @@ function App() {
       
       // Y behave like other capitals
       VimMode.Vim.map('Y', 'y$', 'normal')
-
-      // 定义系统剪贴板操作的 Ex 命令
-      VimMode.Vim.defineEx('systemcopy', 'sysc', () => {
-        const selection = editor.getSelection()
-        const content = selection && !selection.isEmpty() 
-          ? editor.getModel()?.getValueInRange(selection)
-          : editor.getValue()
-        
-        if (content) {
-          navigator.clipboard.writeText(content)
-        }
-      })
-
-      VimMode.Vim.defineEx('systempaste', 'sysp', () => {
-        navigator.clipboard.readText().then(text => {
-          if (!text) return
-          const selection = editor.getSelection()
-          if (selection) {
-            editor.executeEdits('paste', [{
-              range: selection,
-              text: text
-            }])
-          }
-        })
-      })
-
-      // 修改 Leader 键映射，使用新的系统剪贴板命令
-      VimMode.Vim.map('\\c', ':systemcopy<CR>', 'normal')  // 复制全部内容
-      VimMode.Vim.map('\\c', ':systemcopy<CR>', 'visual')  // 复制选中内容
-      VimMode.Vim.map('\\v', ':systempaste<CR>', 'normal') // 粘贴内容
 
       return vim
     } catch (error) {
@@ -462,6 +433,15 @@ function App() {
           
           if (content) {
             navigator.clipboard.writeText(content)
+              .then(() => {
+                // 可以添加视觉反馈
+                const statusEl = document.createElement('div')
+                statusEl.className = 'editor-status-message'
+                statusEl.textContent = '已复制'
+                document.body.appendChild(statusEl)
+                setTimeout(() => statusEl.remove(), 1000)
+              })
+              .catch(err => console.error('复制失败:', err))
           }
         }
       },
@@ -469,16 +449,47 @@ function App() {
         id: 'paste',
         keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV,
         handler: () => {
-          navigator.clipboard.readText().then(text => {
-            if (!text) return
-            const selection = editor.getSelection()
-            if (selection) {
-              editor.executeEdits('paste', [{
-                range: selection,
-                text: text
-              }])
-            }
-          })
+          navigator.clipboard.readText()
+            .then(text => {
+              if (!text) return
+              
+              const selection = editor.getSelection()
+              const position = editor.getPosition()
+              
+              if (!position) return
+              
+              // 如果有选中的文本，替换它
+              if (selection && !selection.isEmpty()) {
+                editor.executeEdits('paste', [{
+                  range: selection,
+                  text: text
+                }])
+              } else {
+                // 在当前光标位置插入
+                editor.executeEdits('paste', [{
+                  range: new monaco.Range(
+                    position.lineNumber,
+                    position.column,
+                    position.lineNumber,
+                    position.column
+                  ),
+                  text: text
+                }])
+              }
+              
+              // 移动光标到粘贴内容的末尾
+              const lines = text.split('\n')
+              const lastLineLength = lines[lines.length - 1].length
+              const newPosition = {
+                lineNumber: position.lineNumber + lines.length - 1,
+                column: lines.length === 1 
+                  ? position.column + text.length 
+                  : lastLineLength + 1
+              }
+              editor.setPosition(newPosition)
+              editor.focus()
+            })
+            .catch(err => console.error('粘贴失败:', err))
         }
       },
       {
@@ -489,12 +500,14 @@ function App() {
           if (selection && !selection.isEmpty()) {
             const content = editor.getModel()?.getValueInRange(selection)
             if (content) {
-              navigator.clipboard.writeText(content).then(() => {
-                editor.executeEdits('cut', [{
-                  range: selection,
-                  text: ''
-                }])
-              })
+              navigator.clipboard.writeText(content)
+                .then(() => {
+                  editor.executeEdits('cut', [{
+                    range: selection,
+                    text: ''
+                  }])
+                })
+                .catch(err => console.error('剪切失败:', err))
             }
           }
         }
@@ -511,12 +524,20 @@ function App() {
       {
         id: 'undo',
         keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ,
-        handler: () => editor.trigger('keyboard', 'undo', null)
+        handler: () => {
+          editor.trigger('keyboard', 'undo', null)
+          // 保存撤销后的状态
+          saveTabState(activeTab)
+        }
       },
       {
         id: 'redo',
         keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
-        handler: () => editor.trigger('keyboard', 'redo', null)
+        handler: () => {
+          editor.trigger('keyboard', 'redo', null)
+          // 保存重做后的状态
+          saveTabState(activeTab)
+        }
       }
     ]
 
