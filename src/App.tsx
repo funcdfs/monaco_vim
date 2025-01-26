@@ -368,55 +368,35 @@ function App() {
       // Y behave like other capitals
       VimMode.Vim.map('Y', 'y$', 'normal')
 
-      // Define Ex commands
-      VimMode.Vim.defineEx('write', 'w', () => {
-        const content = editor.getValue()
-        localStorage.setItem('editorContent', content)
+      // 定义系统剪贴板操作的 Ex 命令
+      VimMode.Vim.defineEx('systemcopy', 'sysc', () => {
+        const selection = editor.getSelection()
+        const content = selection && !selection.isEmpty() 
+          ? editor.getModel()?.getValueInRange(selection)
+          : editor.getValue()
+        
+        if (content) {
+          navigator.clipboard.writeText(content)
+        }
       })
 
-      VimMode.Vim.defineEx('quit', 'q', () => {
-        editor.setValue('')
-      })
-      
-      // Windows style shortcuts - 修改为更可靠的系统剪贴板操作
-      VimMode.Vim.map('<C-a>', 'ggVG', 'normal')      // Ctrl+A 全选
-      
-      // 复制相关
-      VimMode.Vim.map('<C-c>', 'ggVG"+y', 'normal')   // Ctrl+C 在普通模式下全选并复制到系统剪贴板
-      VimMode.Vim.map('<C-c>', '"+y', 'visual')       // Ctrl+C 在可视模式下复制到系统剪贴板
-      
-      // 粘贴相关 - 修改这部分
-      VimMode.Vim.map('<C-v>', '"+P', 'normal')       // 修改：使用大写P在当前光标前粘贴
-      VimMode.Vim.map('<C-v>', 'i<C-r>+', 'normal')   // 新增：另一种粘贴方式
-      VimMode.Vim.map('<C-v>', '<C-r>+', 'insert')    // 修改：简化插入模式下的粘贴命令
-      
-      // 剪切相关
-      VimMode.Vim.map('<C-x>', '"+d', 'visual')       // Ctrl+X 在可视模式下剪切到系统剪贴板
-      
-      // 撤销重做
-      VimMode.Vim.map('<C-z>', 'u', 'normal')         // Ctrl+Z 撤销
-      VimMode.Vim.map('<C-y>', '<C-r>', 'normal')     // Ctrl+Y 重做
-
-      // 添加额外的粘贴命令以确保兼容性
-      VimMode.Vim.defineEx('paste', 'pa', () => {
+      VimMode.Vim.defineEx('systempaste', 'sysp', () => {
         navigator.clipboard.readText().then(text => {
-          const editor = editorRef.current
-          if (editor) {
-            const position = editor.getPosition()
-            if (position) {
-              editor.executeEdits('paste', [{
-                range: new monaco.Range(
-                  position.lineNumber,
-                  position.column,
-                  position.lineNumber,
-                  position.column
-                ),
-                text: text
-              }])
-            }
+          if (!text) return
+          const selection = editor.getSelection()
+          if (selection) {
+            editor.executeEdits('paste', [{
+              range: selection,
+              text: text
+            }])
           }
         })
       })
+
+      // 修改 Leader 键映射，使用新的系统剪贴板命令
+      VimMode.Vim.map('\\c', ':systemcopy<CR>', 'normal')  // 复制全部内容
+      VimMode.Vim.map('\\c', ':systemcopy<CR>', 'visual')  // 复制选中内容
+      VimMode.Vim.map('\\v', ':systempaste<CR>', 'normal') // 粘贴内容
 
       return vim
     } catch (error) {
@@ -469,6 +449,82 @@ function App() {
   const handleEditorDidMount = async (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: Monaco) => {
     editorRef.current = editor
     
+    // 定义编辑器命令
+    const commands = [
+      {
+        id: 'copy',
+        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC,
+        handler: () => {
+          const selection = editor.getSelection()
+          const content = selection && !selection.isEmpty()
+            ? editor.getModel()?.getValueInRange(selection)
+            : editor.getValue()
+          
+          if (content) {
+            navigator.clipboard.writeText(content)
+          }
+        }
+      },
+      {
+        id: 'paste',
+        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV,
+        handler: () => {
+          navigator.clipboard.readText().then(text => {
+            if (!text) return
+            const selection = editor.getSelection()
+            if (selection) {
+              editor.executeEdits('paste', [{
+                range: selection,
+                text: text
+              }])
+            }
+          })
+        }
+      },
+      {
+        id: 'cut',
+        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX,
+        handler: () => {
+          const selection = editor.getSelection()
+          if (selection && !selection.isEmpty()) {
+            const content = editor.getModel()?.getValueInRange(selection)
+            if (content) {
+              navigator.clipboard.writeText(content).then(() => {
+                editor.executeEdits('cut', [{
+                  range: selection,
+                  text: ''
+                }])
+              })
+            }
+          }
+        }
+      },
+      {
+        id: 'selectAll',
+        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyA,
+        handler: () => {
+          const lineCount = editor.getModel()?.getLineCount() || 0
+          const lastLineLength = editor.getModel()?.getLineLength(lineCount) || 0
+          editor.setSelection(new monaco.Range(1, 1, lineCount, lastLineLength + 1))
+        }
+      },
+      {
+        id: 'undo',
+        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ,
+        handler: () => editor.trigger('keyboard', 'undo', null)
+      },
+      {
+        id: 'redo',
+        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
+        handler: () => editor.trigger('keyboard', 'redo', null)
+      }
+    ]
+
+    // 注册所有命令
+    commands.forEach(command => {
+      editor.addCommand(command.keybinding, command.handler)
+    })
+
     // Define custom themes
     themes.forEach(theme => {
       if (!theme.builtin && theme.data) {
@@ -546,28 +602,39 @@ function App() {
   }, [])
 
   // 修改 handleCopy 函数
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const content = editorRef.current?.getValue()
-    if (content) {
-      // 使用 navigator.clipboard API 复制到系统剪贴板
-      navigator.clipboard.writeText(content)
-        .then(() => {
-          // 可以添加一个视觉反馈，比如临时改变按钮文字
-          const copyBtn = document.getElementById('copy-btn')
-          if (copyBtn) {
-            const originalText = copyBtn.textContent
-            copyBtn.textContent = '已复制'
-            setTimeout(() => {
-              copyBtn.textContent = originalText
-            }, 1000)
-          }
-        })
-        .catch(err => {
-          console.error('复制失败:', err)
-        })
+    if (!content) return
+
+    try {
+      await navigator.clipboard.writeText(content)
+      
+      // 视觉反馈
+      const copyBtn = document.getElementById('copy-btn')
+      if (copyBtn) {
+        const originalText = copyBtn.textContent
+        copyBtn.textContent = '已复制'
+        setTimeout(() => {
+          copyBtn.textContent = originalText
+        }, 1000)
+      }
       
       // 保存到历史记录
       saveToHistory('copy')
+    } catch (err) {
+      console.error('复制失败:', err)
+      
+      // 错误反馈
+      const copyBtn = document.getElementById('copy-btn')
+      if (copyBtn) {
+        const originalText = copyBtn.textContent
+        copyBtn.textContent = '复制失败'
+        copyBtn.style.color = 'red'
+        setTimeout(() => {
+          copyBtn.textContent = originalText
+          copyBtn.style.color = ''
+        }, 1000)
+      }
     }
   }
 
