@@ -826,7 +826,7 @@ function App() {
           style={{
             position: 'absolute',
             bottom: '4px',
-            right: '12px',
+            right: '14px',
             zIndex: 10,
           }}
         >
