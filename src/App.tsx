@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import Editor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { initVimMode, VimMode } from 'monaco-vim'
@@ -25,41 +25,41 @@ const themes: ThemeDefinition[] = [
   { id: 'konng', name: 'KONNG', builtin: false, data: konngTheme },
   { id: 'horizon', name: 'Horizon', builtin: false, data: horizonTheme },
   { id: 'nord', name: 'Nord', builtin: false, data: nordTheme },
-  { id: 'vs-dark', name: 'vs-dark', builtin: true },
+  { id: 'vs-dark', name: 'Vscode', builtin: true },
   { id: 'monokai', name: 'Monokai', builtin: false, data: monokaiTheme },
   { id: 'github', name: 'GitHub', builtin: false, data: githubTheme },
-  { id: 'solarized-dark', name: 'Solarized Dark', builtin: false, data: solarizedDarkTheme },
+  { id: 'solarized-dark', name: 'Solarized', builtin: false, data: solarizedDarkTheme },
   { id: 'dracula', name: 'Dracula', builtin: false, data: draculaTheme },
 ];
 
-// Add type declaration for VimMode
+// 简化 VimMode 类型定义
 declare module 'monaco-vim' {
   export interface VimMode {
     dispose: () => void;
+    on: (event: string, callback: (mode: string) => void) => void;
   }
   export const VimMode: {
     Vim: {
       map: (from: string, to: string, mode?: string) => void;
-      noremap: (from: string, to: string, mode?: string) => void;
       defineEx: (name: string, shortName: string, callback: Function) => void;
       defineOption: (name: string, value: any) => void;
     }
   }
 }
 
-// Enhance EditorTab interface
+// 简化 EditorTab 接口
 interface EditorTab {
   id: number;
   content: string;
   language: string;
   cursorPosition?: { lineNumber: number; column: number };
+  viewState?: monaco.editor.ICodeEditorViewState;
+  selections?: monaco.Selection[];
   history: {
     type: 'copy' | 'reset' | 'clear';
     content: string;
     cursorPosition?: { lineNumber: number; column: number };
   }[];
-  viewState?: monaco.editor.ICodeEditorViewState;
-  selections?: monaco.Selection[];
 }
 
 const defaultCppCode = `#include <bits/stdc++.h>
@@ -73,11 +73,61 @@ int main() {
    return 0; 
 }`
 
+// 添加防抖函数
+const useDebounce = (func: Function, wait: number) => {
+  const timeout = useRef<NodeJS.Timeout>()
+
+  return useCallback((...args: any[]) => {
+    const later = () => {
+      clearTimeout(timeout.current)
+      func(...args)
+    }
+
+    clearTimeout(timeout.current)
+    timeout.current = setTimeout(later, wait)
+  }, [func, wait])
+}
+
+// 添加错误边界组件
+class EditorErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Editor error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="editor-error">
+          <h3>编辑器出现错误</h3>
+          <button onClick={() => this.setState({ hasError: false })}>
+            重试
+          </button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
 function App() {
   const [theme, setTheme] = useState<string>('konng')
   const [activeTab, setActiveTab] = useState(1)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const vimModeRef = useRef<any>(null)
+  const [vimMode, setVimMode] = useState<string>('normal')
   
   // Initialize tabs with enhanced state
   const [tabs, setTabs] = useState<EditorTab[]>([
@@ -122,81 +172,89 @@ function App() {
   }
 
   const saveTabState = (tabId: number) => {
-    if (editorRef.current) {
-      const editor = editorRef.current
-      const content = editor.getValue()
-      const cursorPosition = editor.getPosition()
-      const viewState = editor.saveViewState()
-      const selections = editor.getSelections() || []
-
-      setTabs(prev => prev.map(tab => 
-        tab.id === tabId 
-          ? {
-              ...tab,
-              content,
-              cursorPosition: cursorPosition ? {
-                lineNumber: cursorPosition.lineNumber,
-                column: cursorPosition.column
-              } : undefined,
-              viewState: viewState || undefined,
-              selections
-            }
-          : tab
-      ))
-    }
+    if (!editorRef.current) return
+    
+    const editor = editorRef.current
+    setTabs(prev => prev.map(tab => 
+      tab.id === tabId 
+        ? {
+            ...tab,
+            content: editor.getValue(),
+            cursorPosition: editor.getPosition() || undefined,
+            viewState: editor.saveViewState() || undefined,
+            selections: editor.getSelections() || []
+          }
+        : tab
+    ))
   }
 
   const restoreTabState = (tabId: number) => {
     const tab = tabs.find(t => t.id === tabId)
-    if (tab && editorRef.current) {
-      const editor = editorRef.current
-      
-      // Restore content
-      editor.setValue(tab.content)
-      
-      // Restore cursor position
-      if (tab.cursorPosition) {
-        editor.setPosition(tab.cursorPosition)
-      }
-      
-      // Restore view state
-      if (tab.viewState) {
-        editor.restoreViewState(tab.viewState)
-      }
-      
-      // Restore selections
-      if (tab.selections && tab.selections.length > 0) {
-        editor.setSelections(tab.selections)
-      }
-      
-      editor.focus()
-    }
+    if (!tab || !editorRef.current) return
+    
+    const editor = editorRef.current
+    editor.setValue(tab.content)
+    tab.cursorPosition && editor.setPosition(tab.cursorPosition)
+    tab.viewState && editor.restoreViewState(tab.viewState)
+    tab.selections?.length && editor.setSelections(tab.selections)
+    editor.focus()
   }
 
   const handleTabChange = (tabId: number) => {
     if (editorRef.current) {
-      // Save current tab state before switching
-      saveTabState(activeTab)
-      
-      // Switch to new tab
+      // 使用函数式更新确保状态一致性
+      setTabs(prevTabs => {
+        const currentTab = prevTabs.find(t => t.id === activeTab)
+        if (!currentTab) return prevTabs
+
+        const editor = editorRef.current!
+        const content = editor.getValue()
+        const cursorPosition = editor.getPosition()
+        const viewState = editor.saveViewState()
+        const selections = editor.getSelections() || []
+
+        return prevTabs.map(tab => 
+          tab.id === activeTab
+            ? {
+                ...tab,
+                content,
+                cursorPosition: cursorPosition ? {
+                  lineNumber: cursorPosition.lineNumber,
+                  column: cursorPosition.column
+                } : undefined,
+                viewState: viewState || undefined,
+                selections
+              }
+            : tab
+        )
+      })
+
       setActiveTab(tabId)
       
-      // Restore the tab state when changing tabs
-      restoreTabState(tabId)
+      // 使用 requestAnimationFrame 确保状态更新后再恢复
+      requestAnimationFrame(() => {
+        restoreTabState(tabId)
+      })
     }
   }
 
   const handleAddTab = () => {
-    const newTabId = Math.max(...tabs.map(t => t.id)) + 1
-    setTabs(prev => [...prev, {
-      id: newTabId,
-      content: defaultCppCode,
-      language: 'cpp',
-      history: [],
-      scrollPosition: { scrollTop: 0, scrollLeft: 0 },
-      selections: []
-    }])
-    setActiveTab(newTabId)
+    if (editorRef.current) {
+      // Save current tab state before adding new tab
+      saveTabState(activeTab)
+      
+      const newTabId = Math.max(...tabs.map(t => t.id)) + 1
+      setTabs(prev => [...prev, {
+        id: newTabId,
+        content: defaultCppCode,
+        language: 'cpp',
+        history: [],
+        cursorPosition: { lineNumber: 7, column: 4 }, // Position at 'xxx'
+        selections: []
+      }])
+      
+      setActiveTab(newTabId)
+    }
   }
 
   const initVimModeWithConfig = async (editor: monaco.editor.IStandaloneCodeEditor) => {
@@ -205,7 +263,52 @@ function App() {
       const vim = initVimMode(editor, statusNode)
       vimModeRef.current = vim
 
-      // Basic vim settings
+      // 修改模式变化监听的实现
+      const updateVimMode = (mode: any) => {
+        const currentMode = typeof mode === 'object' && mode.mode 
+          ? mode.mode.toLowerCase() 
+          : 'normal'
+        
+        // 设置更具描述性的模式名称
+        let displayMode = currentMode
+        switch (currentMode) {
+          case 'visual':
+            displayMode = 'VISUAL'
+            break
+          case 'visualline':
+            displayMode = 'VISUAL LINE'
+            break
+          case 'visualblock':
+            displayMode = 'VISUAL BLOCK'
+            break
+          case 'insert':
+            displayMode = 'INSERT'
+            break
+          case 'replace':
+            displayMode = 'REPLACE'
+            break
+          case 'normal':
+          default:
+            displayMode = 'NORMAL'
+            break
+        }
+        
+        setVimMode(displayMode.toLowerCase())
+
+        // 更新编辑器光标样式
+        editor.updateOptions({
+          cursorStyle: currentMode === 'insert' ? 'line' : 'block',
+          cursorWidth: currentMode === 'insert' ? 1 : 2
+        })
+      }
+
+      // 设置初始模式
+      updateVimMode({ mode: 'normal' })
+
+      // 添加模式变化监听
+      vim.on('vim-mode-change', updateVimMode)
+
+      // 其他 vim 配置保持不变
       VimMode.Vim.defineOption('tabstop', 2)
       VimMode.Vim.defineOption('shiftwidth', 2)
       VimMode.Vim.defineOption('expandtab', true)
@@ -271,9 +374,11 @@ function App() {
       VimMode.Vim.defineEx('quit', 'q', () => {
         editor.setValue('')
       })
-
+      
+      return vim
     } catch (error) {
       console.error('Error initializing vim mode:', error)
+      return null
     }
   }
 
@@ -281,72 +386,25 @@ function App() {
   const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     tabSize: 3,
     insertSpaces: true,
-    detectIndentation: false,
     fontSize: 14,
-    fontFamily: "'Monaco, Menlo, 'Courier New', monospace",
-    fontLigatures: true,
+    fontFamily: "Monaco, Menlo, 'Courier New', monospace",
     minimap: { 
       enabled: true,
-      maxColumn: 80,
-      renderCharacters: false,
-      scale: 0.75,
       side: 'left',
-      showSlider: 'mouseover',
-      size: 'proportional'
     },
-    scrollBeyondLastLine: false,
-    renderWhitespace: 'boundary',
-    lineNumbers: 'on',
-    cursorStyle: 'line',
-    cursorBlinking: 'smooth',
-    cursorSmoothCaretAnimation: 'on', // Changed from true to 'on'
-    smoothScrolling: true,
+    cursorStyle: 'block',
+    cursorWidth: 2,
+    cursorBlinking: 'solid',
     wordWrap: 'on',
-    wordWrapColumn: 120,
-    formatOnPaste: true,
-    formatOnType: true,
-    renderLineHighlight: 'all',
-    colorDecorators: true,
-    bracketPairColorization: {
-      enabled: true,
-    },
+    lineNumbers: 'on',
+    bracketPairColorization: { enabled: true },
+    padding: { top: 10, bottom: 10 },
+    scrollBeyondLastLine: false,
+    automaticLayout: true,
     guides: {
       bracketPairs: true,
       indentation: true,
-      highlightActiveIndentation: true,
-      bracketPairsHorizontal: true,
-    },
-    padding: {
-      top: 10,
-      bottom: 10,
-    },
-    mouseWheelZoom: true,
-    suggest: {
-      showKeywords: true,
-      showSnippets: true,
-      showClasses: true,
-      showFunctions: true,
-      showVariables: true,
-      showConstants: true,
-    },
-    quickSuggestions: {
-      other: true,
-      comments: true,
-      strings: true,
-    },
-    acceptSuggestionOnEnter: 'smart',
-    suggestOnTriggerCharacters: true, // Changed from 'on' to true
-    folding: true,
-    foldingStrategy: 'auto',
-    showFoldingControls: 'always',
-    matchBrackets: 'always',
-    occurrencesHighlight: 'singleFile',
-    find: {
-      addExtraSpaceOnTop: false,
-      autoFindInSelection: 'multiline',
-      seedSearchStringFromSelection: 'selection',
-    },
-    suggestSelection: 'first',
+    }
   }
 
   const handleEditorDidMount = async (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: Monaco) => {
@@ -502,6 +560,49 @@ function App() {
     }
   }
 
+  // 添加自动保存功能
+  useEffect(() => {
+    let lastContent = editorRef.current?.getValue()
+    
+    const saveInterval = setInterval(() => {
+      if (editorRef.current) {
+        const currentContent = editorRef.current.getValue()
+        if (currentContent !== lastContent) {
+          saveTabState(activeTab)
+          lastContent = currentContent
+        }
+      }
+    }, 1000)
+
+    return () => clearInterval(saveInterval)
+  }, [activeTab])
+
+  // 添加防抖函数
+  const debouncedSaveState = useDebounce((tabId: number) => {
+    saveTabState(tabId)
+  }, 300)
+
+  // 修改编辑器内容变化的监听
+  useEffect(() => {
+    if (editorRef.current) {
+      const disposable = editorRef.current.onDidChangeModelContent(() => {
+        const content = editorRef.current?.getValue()
+        if (content !== undefined) {
+          setTabs(prev => prev.map(tab => 
+            tab.id === activeTab 
+              ? { ...tab, content }
+              : tab
+          ))
+          debouncedSaveState(activeTab)
+        }
+      })
+
+      return () => {
+        disposable.dispose()
+      }
+    }
+  }, [activeTab, debouncedSaveState])
+
   return (
     <div className="app-container">
       <div className="tabs">
@@ -514,51 +615,40 @@ function App() {
             {tab.id}
           </button>
         ))}
-        <button className="tab" onClick={handleAddTab} title="添加新代码框">+</button>
+        <button className="tab" onClick={handleAddTab}>+</button>
       </div>
       
       <div className="editor-container">
-        <Editor
-          height="100%"
-          defaultLanguage="cpp"
-          theme={theme}
-          onMount={handleEditorDidMount}
-          key={activeTab}
-          defaultValue={tabs.find(t => t.id === activeTab)?.content}
-          onChange={(value) => {
-            if (value !== undefined) {
-              setTabs(prev => prev.map(tab => 
-                tab.id === activeTab 
-                  ? { ...tab, content: value }
-                  : tab
-              ))
-            }
-          }}
-          options={{
-            tabSize: 3,
-            insertSpaces: true,
-            fontSize: 14,
-            minimap: { enabled: true },
-            scrollBeyondLastLine: false,
-          }}
-        />
+        <EditorErrorBoundary>
+          <Editor
+            height="100%"
+            defaultLanguage="cpp"
+            theme={theme}
+            onMount={handleEditorDidMount}
+            value={tabs.find(t => t.id === activeTab)?.content}
+            onChange={(value) => value && saveTabState(activeTab)}
+            options={editorOptions}
+          />
+        </EditorErrorBoundary>
         <div id="vim-status" className="vim-status"></div>
+        <div className={`vim-mode-status ${vimMode}`}>
+          -- {vimMode.toUpperCase()} --
+        </div>
       </div>
 
       <div className="controls">
-        <button onClick={handleCopy} title="复制到剪贴板">复制</button>
-        <button onClick={handleReset} title="重置为初始代码">初始</button>
-        <button onClick={handleClear} title="清空编辑器">清空</button>
-        <button onClick={handleUndo} title="撤销上一步">撤销</button>
+        <button id="copy-btn" title="复制到剪贴板" onClick={handleCopy}>复制</button>
+        <button id="reset-btn" title="重置为初始代码" onClick={handleReset}>初始</button>
+        <button id="clear-btn" title="清空编辑器" onClick={handleClear}>清空</button>
+        <button id="undo-btn" title="撤销上一步" onClick={handleUndo}>撤销</button>
         <select 
+          id="theme-select"
+          className="theme-select"
           value={theme} 
           onChange={(e) => handleThemeChange(e.target.value)}
-          className="theme-select"
         >
           {themes.map(theme => (
-            <option key={theme.id} value={theme.id}>
-              {theme.name}
-            </option>
+            <option key={theme.id} value={theme.id}>{theme.name}</option>
           ))}
         </select>
       </div>
