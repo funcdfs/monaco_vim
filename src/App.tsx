@@ -10,6 +10,7 @@ import nordTheme from 'monaco-themes/themes/Nord.json'
 import draculaTheme from 'monaco-themes/themes/Dracula.json'
 import horizonTheme from './themes/horizon.json'
 import konngTheme from './themes/konng.json'
+import greenTheme from './themes/Green.json'  // 更新导入
 import './App.css'
 
 // Theme type definitions
@@ -23,6 +24,7 @@ type ThemeDefinition = {
 // Theme definitions with source information
 const themes: ThemeDefinition[] = [
   { id: 'konng', name: 'KONNG', builtin: false, data: konngTheme },
+  { id: 'green', name: 'Green', builtin: false, data: greenTheme },
   { id: 'horizon', name: 'Horizon', builtin: false, data: horizonTheme },
   { id: 'nord', name: 'Nord', builtin: false, data: nordTheme },
   { id: 'vs-dark', name: 'Vscode', builtin: true },
@@ -383,7 +385,7 @@ function App() {
     }
   }
 
-  // Add editor configuration options
+  // 更新编辑器选项
   const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     tabSize: tabSize,
     insertSpaces: true,
@@ -405,7 +407,23 @@ function App() {
     guides: {
       bracketPairs: true,
       indentation: true,
-    }
+    },
+    // 添加折叠设置
+    folding: true,
+    foldingStrategy: 'indentation',
+    showFoldingControls: 'always',
+    // 滚动设置
+    scrollbar: {
+      vertical: 'visible',
+      horizontal: 'visible',
+      verticalScrollbarSize: 12,
+      horizontalScrollbarSize: 12,
+      useShadows: false,
+    },
+    // 其他优化
+    smoothScrolling: true,
+    mouseWheelScrollSensitivity: 1.5,
+    fastScrollSensitivity: 7,
   }
 
   const handleEditorDidMount = async (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: Monaco) => {
@@ -642,7 +660,13 @@ function App() {
         </EditorErrorBoundary>
         <div id="vim-status" className="vim-status"></div>
         <div className={`vim-mode-status ${vimMode}`}>
-          -- {vimMode.toUpperCase()} --
+          <div className="mode-text">
+            -- {vimMode.toUpperCase()} --
+          </div>
+          <a href="https://github.com/funcdfs" className="github-link" target="_blank" rel="noopener noreferrer">
+            <span className="github-icon"></span>
+            @funcdfs
+          </a>
         </div>
       </div>
 
