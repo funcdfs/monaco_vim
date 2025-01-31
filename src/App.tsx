@@ -65,13 +65,15 @@ interface EditorTab {
 }
 
 const defaultCppCode = `#include <bits/stdc++.h>
-using namespace std;
-using int64 = long long;
+using namespace std; using int64 = long long;
 #define endl '\\n'       
 #define println(...)   std::cout << __VA_ARGS__ << '\\n'
 
 int main() {
+    cin.tie(nullptr); cin.exceptions(ios::badbit | ios::failbit); ios::sync_with_stdio(false); cout << fixed << setprecision( 15 );
+    
     xxx
+
     return 0; 
 }`
 
